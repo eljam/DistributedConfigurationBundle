@@ -1,6 +1,19 @@
 <?php
 
-namespace Eljam\KeyValueStoreBundle\DependencyInjection;
+/*
+ * This file is part of the distributed-configuration-bundle package
+ *
+ * Copyright (c) 2016 Guillaume Cavana
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * Feel free to edit as you please, and have fun.
+ *
+ * @author Guillaume Cavana <guillaume.cavana@gmail.com>
+ */
+
+namespace Maikuro\DistributedConfigurationBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
@@ -12,13 +25,14 @@ class Configuration implements ConfigurationInterface
      */
     public function getConfigTreeBuilder()
     {
-        $self        = $this;
+        $self = $this;
         $treeBuilder = new TreeBuilder();
-        $rootNode = $treeBuilder->root('eljam_key_value_store');
+        $rootNode = $treeBuilder->root('maikuro_distributed_configuration');
 
-        $supportedStores = ['dbal', 'predis', 'redis'];
+        $supportedStores = ['dbal', 'predis', 'redis', 'json'];
 
-        $normalization   = function ($conf) use ($self) {
+        $normalization = function ($conf) use ($self) {
+
             $conf['type'] = $self->resolveNodeType($conf);
 
             return $conf;
@@ -29,7 +43,7 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('store')
                     ->beforeNormalization()
                         ->ifTrue(function ($v) {
-                            return ( ! isset($v['type']));
+                            return  !isset($v['type']);
                         })
                         ->then($normalization)
                     ->end()
@@ -43,11 +57,15 @@ class Configuration implements ConfigurationInterface
                         ->append($this->addRedisNode())
                         ->append($this->addPredisNode())
                         ->append($this->addDbalNode())
+                        ->append($this->addJsonFileNode())
                     ->end()
                 ->end()
                 ->arrayNode('cache')
+                    ->addDefaultsIfNotSet()
                     ->children()
+                        ->scalarNode('enabled')->defaultFalse()->end()
                         ->scalarNode('service_id')->defaultNull()->end()
+                        ->scalarNode('default_ttl')->defaultValue('3600')->end()
                     ->end()
                 ->end()
             ->end()
@@ -55,7 +73,6 @@ class Configuration implements ConfigurationInterface
 
         return $treeBuilder;
     }
-
 
     /**
      * @param array $parameters
@@ -68,20 +85,20 @@ class Configuration implements ConfigurationInterface
             unset($parameters['type']);
         }
 
-        $type   = key($parameters);
+        $type = key($parameters);
 
         return $type;
     }
 
     /**
-     * Build riak node configuration definition
+     * Build Predis node configuration definition.
      *
      * @return \Symfony\Component\Config\Definition\Builder\TreeBuilder
      */
     private function addPredisNode()
     {
         $builder = new TreeBuilder();
-        $node    = $builder->root('predis');
+        $node = $builder->root('predis');
         $node
             ->addDefaultsIfNotSet()
             ->children()
@@ -103,24 +120,18 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * Build riak node configuration definition
+     * Build JsonFile node configuration definition.
      *
      * @return \Symfony\Component\Config\Definition\Builder\TreeBuilder
      */
-    private function addDbalNode()
+    private function addJsonFileNode()
     {
         $builder = new TreeBuilder();
-        $node    = $builder->root('dbal');
+        $node = $builder->root('json');
         $node
             ->addDefaultsIfNotSet()
             ->children()
-                ->scalarNode('connection_id')->defaultNull()->end()
-                ->scalarNode('driver')->defaultValue('pdo_mysql')->end()
-                ->scalarNode('dbname')->defaultValue('db')->end()
-                ->scalarNode('user')->defaultNull()->end()
-                ->scalarNode('password')->defaultNull()->end()
-                ->scalarNode('charset')->defaultNull()->end()
-                ->scalarNode('table')->defaultValue('meta_key')->end()
+                ->scalarNode('path')->defaultValue('%kernel.root_dir%/configuration.json')->end()
             ->end()
         ;
 
@@ -128,14 +139,34 @@ class Configuration implements ConfigurationInterface
     }
 
     /**
-     * Build riak node configuration definition
+     * Build dbal node configuration definition.
+     *
+     * @return \Symfony\Component\Config\Definition\Builder\TreeBuilder
+     */
+    private function addDbalNode()
+    {
+        $builder = new TreeBuilder();
+        $node = $builder->root('dbal');
+        $node
+            ->addDefaultsIfNotSet()
+            ->children()
+                ->scalarNode('connection_id')->defaultNull()->end()
+                ->scalarNode('table_name')->defaultValue('configuration')->end()
+            ->end()
+        ;
+
+        return $node;
+    }
+
+    /**
+     * Build Redis node configuration definition.
      *
      * @return \Symfony\Component\Config\Definition\Builder\TreeBuilder
      */
     private function addRedisNode()
     {
         $builder = new TreeBuilder();
-        $node    = $builder->root('redis');
+        $node = $builder->root('redis');
         $node
             ->addDefaultsIfNotSet()
             ->children()

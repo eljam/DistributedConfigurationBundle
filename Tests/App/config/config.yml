@@ -1,0 +1,32 @@
+framework:
+    secret:          test
+    test: ~
+    router:          { resource: "%kernel.root_dir%/config/routing.yml" }
+    form:            ~
+    csrf_protection: false
+    validation:      { enable_annotations: true }
+    templating:      { engines: ['php'] }
+    session:
+        storage_id: session.storage.mock_file
+
+doctrine_cache:
+    providers:
+        my_array_cache:
+            type: array
+
+maikuro_distributed_configuration:
+    store:
+        json:
+            path: "%kernel.root_dir%/test.json"
+    cache:
+        enabled: true
+        service_id: doctrine_cache.providers.my_array_cache
+
+fos_rest:
+    exception:
+        codes:
+            'Webmozart\KeyValueStore\Api\WriteException': 400
+            'Webmozart\KeyValueStore\Api\NoSuchKeyException': 404
+    format_listener:
+        rules:
+            - { path: '^/v1/', priorities: ['json'], fallback_format: json, prefer_extension: false }

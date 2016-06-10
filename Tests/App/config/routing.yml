@@ -1,0 +1,3 @@
+maikuro_distributed_configuration_api:
+    resource: "@MaikuroDistributedConfigurationBundle/Resources/config/routing.yml"
+    prefix: /v1

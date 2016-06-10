@@ -1,21 +1,33 @@
 <?php
 
-namespace Eljam\KeyValueStoreBundle\Tests;
+/*
+ * This file is part of the distributed-configuration-bundle package
+ *
+ * Copyright (c) 2016 Guillaume Cavana
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ *
+ * Feel free to edit as you please, and have fun.
+ *
+ * @author Guillaume Cavana <guillaume.cavana@gmail.com>
+ */
 
-use Eljam\KeyValueStoreBundle\DependencyInjection\Configuration;
-use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+namespace Maikuro\DistributedConfigurationBundle\Tests;
+
+use Maikuro\DistributedConfigurationBundle\DependencyInjection\Configuration;
 use Symfony\Component\Config\Definition\Processor;
 
 class ConfigurationTest extends \PHPUnit_Framework_TestCase
 {
     public function testInvalidStoreValue()
     {
-        $configs = ['eljam_key_value_store' => ['store' => ['type' => 'wrong_store']]];
+        $configs = ['gundan_distributed_configuration' => ['store' => ['type' => 'wrong_store']]];
 
         $processor = new Processor();
         $configuration = new Configuration();
 
-        $this->setExpectedException(InvalidConfigurationException::class);
+        $this->setExpectedException('Symfony\Component\Config\Definition\Exception\InvalidConfigurationException');
 
         $config = $processor->processConfiguration($configuration, $configs);
     }
@@ -24,10 +36,8 @@ class ConfigurationTest extends \PHPUnit_Framework_TestCase
     {
         $configs =
         [
-            'eljam_key_value_store' =>
-            [
-                'store' =>
-                [
+            'gundan_distributed_configuration' => [
+                'store' => [
                     'predis' => ['client_id' => 'redis.client_id', 'scheme' => 'http'],
                 ],
             ],

@@ -1,0 +1,19 @@
+MaikuroDistributedConfigurationBundle_get:
+    path:      /keys/{key}
+    defaults:  { _controller: MaikuroDistributedConfigurationBundle:Api:get }
+    methods:  [GET]
+
+MaikuroDistributedConfigurationBundle_create:
+    path:      /keys
+    defaults:  { _controller: MaikuroDistributedConfigurationBundle:Api:create }
+    methods:  [POST]
+
+MaikuroDistributedConfigurationBundle_update:
+    path:      /keys/{key}
+    defaults:  { _controller: MaikuroDistributedConfigurationBundle:Api:update }
+    methods:  [PUT, PATCH]
+
+MaikuroDistributedConfigurationBundle_delete:
+    path:      /keys/{key}
+    defaults:  { _controller: MaikuroDistributedConfigurationBundle:Api:delete }
+    methods:  [DELETE]
